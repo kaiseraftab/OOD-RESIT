@@ -1,52 +1,42 @@
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyAdapter;
 
+/** <p>This is the KeyController (KeyListener)</p>
+ * @author Ian F. Darwin, ian@darwinsys.com, Gert Florijn, Sylvia Stuurman
+ * @version 1.1 2002/12/17 Gert Florijn
+ * @version 1.2 2003/11/19 Sylvia Stuurman
+ * @version 1.3 2004/08/17 Sylvia Stuurman
+ * @version 1.4 2007/07/16 Sylvia Stuurman
+ * @version 1.5 2010/03/03 Sylvia Stuurman
+ * @version 1.6 2014/05/16 Sylvia Stuurman
+*/
+
 public class KeyController extends KeyAdapter {
-	private static final int KEY_NEXT_SLIDE1 = KeyEvent.VK_PAGE_DOWN;
-	private static final int KEY_NEXT_SLIDE2 = KeyEvent.VK_DOWN;
-	private static final int KEY_NEXT_SLIDE3 = KeyEvent.VK_ENTER;
-	private static final char KEY_NEXT_SLIDE4 = '+';
+	private Presentation presentation; //Commands are given to the presentation
 
-	private static final int KEY_PREV_SLIDE1 = KeyEvent.VK_PAGE_UP;
-	private static final int KEY_PREV_SLIDE2 = KeyEvent.VK_UP;
-	private static final char KEY_PREV_SLIDE3 = '-';
-
-	private static final char KEY_QUIT1 = 'q';
-	private static final char KEY_QUIT2 = 'Q';
-
-	private final Presentation presentation; // Commands are given to the presentation
-
-	public KeyController(Presentation presentation) {
-		this.presentation = presentation;
+	public KeyController(Presentation p) {
+		presentation = p;
 	}
 
-	@Override
 	public void keyPressed(KeyEvent keyEvent) {
-		int keyCode = keyEvent.getKeyCode();
-		char keyChar = keyEvent.getKeyChar();
-		if (isNextSlideKey(keyCode, keyChar)) {
-			presentation.nextSlide();
-		} else if (isPreviousSlideKey(keyCode, keyChar)) {
-			presentation.prevSlide();
-		} else if (isQuitKey(keyChar)) {
-			quitApplication();
+		switch(keyEvent.getKeyCode()) {
+			case KeyEvent.VK_PAGE_DOWN:
+			case KeyEvent.VK_DOWN:
+			case KeyEvent.VK_ENTER:
+			case '+':
+				presentation.nextSlide();
+				break;
+			case KeyEvent.VK_PAGE_UP:
+			case KeyEvent.VK_UP:
+			case '-':
+				presentation.prevSlide();
+				break;
+			case 'q':
+			case 'Q':
+				System.exit(0);
+				break; //Should not be reached
+			default:
+				break;
 		}
-	}
-
-	private boolean isNextSlideKey(int keyCode, char keyChar) {
-		return keyCode == KEY_NEXT_SLIDE1 || keyCode == KEY_NEXT_SLIDE2 || keyCode == KEY_NEXT_SLIDE3 || keyChar == KEY_NEXT_SLIDE4;
-	}
-
-	private boolean isPreviousSlideKey(int keyCode, char keyChar) {
-		return keyCode == KEY_PREV_SLIDE1 || keyCode == KEY_PREV_SLIDE2 || keyChar == KEY_PREV_SLIDE3;
-	}
-
-	private boolean isQuitKey(char keyChar) {
-		return keyChar == KEY_QUIT1 || keyChar == KEY_QUIT2;
-	}
-
-	private void quitApplication() {
-		// Potentially save state or prompt user before exit
-		System.exit(0);
 	}
 }

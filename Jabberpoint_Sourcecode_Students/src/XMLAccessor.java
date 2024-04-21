@@ -1,108 +1,152 @@
-import java.io.*;
-import java.util.List;
-import java.util.Optional;
-import javax.xml.parsers.*;
+import java.util.Vector;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.FileWriter;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.xml.sax.SAXException;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.NodeList;
+
+
+/** XMLAccessor, reads and writes XML files
+ * @author Ian F. Darwin, ian@darwinsys.com, Gert Florijn, Sylvia Stuurman
+ * @version 1.1 2002/12/17 Gert Florijn
+ * @version 1.2 2003/11/19 Sylvia Stuurman
+ * @version 1.3 2004/08/17 Sylvia Stuurman
+ * @version 1.4 2007/07/16 Sylvia Stuurman
+ * @version 1.5 2010/03/03 Sylvia Stuurman
+ * @version 1.6 2014/05/16 Sylvia Stuurman
+ */
 
 public class XMLAccessor implements Accessor {
-	protected static final String DEFAULT_API_TO_USE = "dom";
-	protected static final String SHOWTITLE = "showtitle";
-	protected static final String SLIDETITLE = "title";
-	protected static final String SLIDE = "slide";
-	protected static final String ITEM = "item";
-	protected static final String LEVEL = "level";
-	protected static final String KIND = "kind";
-	protected static final String TEXT = "text";
-	protected static final String IMAGE = "image";
-	protected static final String PCE = "Parser Configuration Exception";
-	protected static final String UNKNOWNTYPE = "Unknown Element type";
-	protected static final String NFE = "Number Format Exception";
-
-	private String getTitle(Element element, String tagName) {
-		return element.getElementsByTagName(tagName).item(0).getTextContent();
-	}
-
-	public String loadNewFile() {
-		String data = HelpingClass.getStringInput("Paste the New XML", 400, 200);
-		if (data != null) {
-			String fileName = HelpingClass.getFileNameInput("Enter a file name without Extension:", "Save As");
-			if (fileName != null) {
-				saveNewFile(data, fileName + ".xml");
-				return fileName + ".xml";
-			}
-		}
-		return null;
-	}
-
-	private void saveNewFile(String fileData, String fileName) {
-		try (FileOutputStream outputStream = new FileOutputStream(new File(fileName))) {
-			outputStream.write(fileData.getBytes());
-			System.out.println("New File created successfully.");
-		} catch (IOException e) {
-			System.err.println("New File not created successfully: " + e.getMessage());
-		}
-	}
+	
+    /** Default API to use. */
+    protected static final String DEFAULT_API_TO_USE = "dom";
+    
+    /** Names of xml tags of attributes */
+    protected static final String SHOWTITLE = "showtitle";
+    protected static final String SLIDETITLE = "title";
+    protected static final String SLIDE = "slide";
+    protected static final String ITEM = "item";
+    protected static final String LEVEL = "level";
+    protected static final String KIND = "kind";
+    protected static final String TEXT = "text";
+    protected static final String IMAGE = "image";
+    
+    /** Text of messages */
+    protected static final String PCE = "Parser Configuration Exception";
+    protected static final String UNKNOWNTYPE = "Unknown Element type";
+    protected static final String NFE = "Number Format Exception";
+    
+    
+    private String getTitle(Element element, String tagName) {
+    	NodeList titles = element.getElementsByTagName(tagName);
+    	return titles.item(0).getTextContent();
+    	
+    }
 
 	public void loadFile(Presentation presentation, String filename) throws IOException {
+		int slideNumber, itemNumber, max = 0, maxItems = 0;
 		try {
-			Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(filename));
+			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();    
+			Document document = builder.parse(new File(filename)); //Create a JDOM document
 			Element doc = document.getDocumentElement();
 			presentation.setTitle(getTitle(doc, SHOWTITLE));
 
 			NodeList slides = doc.getElementsByTagName(SLIDE);
-			for (int slideNumber = 0; slideNumber < slides.getLength(); slideNumber++) {
+			max = slides.getLength();
+			for (slideNumber = 0; slideNumber < max; slideNumber++) {
 				Element xmlSlide = (Element) slides.item(slideNumber);
 				Slide slide = new Slide();
 				slide.setTitle(getTitle(xmlSlide, SLIDETITLE));
 				presentation.append(slide);
-
+				
 				NodeList slideItems = xmlSlide.getElementsByTagName(ITEM);
-				for (int itemNumber = 0; itemNumber < slideItems.getLength(); itemNumber++) {
-					loadSlideItem(slide, (Element) slideItems.item(itemNumber));
+				maxItems = slideItems.getLength();
+				for (itemNumber = 0; itemNumber < maxItems; itemNumber++) {
+					Element item = (Element) slideItems.item(itemNumber);
+					loadSlideItem(slide, item);
 				}
 			}
-		} catch (SAXException | ParserConfigurationException e) {
-			throw new IOException("Failed to load XML file: " + e.getMessage(), e);
+		} 
+		catch (IOException iox) {
+			System.err.println(iox.toString());
 		}
+		catch (SAXException sax) {
+			System.err.println(sax.getMessage());
+		}
+		catch (ParserConfigurationException pcx) {
+			System.err.println(PCE);
+		}	
 	}
 
-	private void loadSlideItem(Slide slide, Element item) {
-		int level = Integer.parseInt(item.getAttribute(LEVEL));
-		String type = item.getAttribute(KIND);
-		if (type.equals(TEXT)) {
+	protected void loadSlideItem(Slide slide, Element item) {
+		int level = 1; // default
+		NamedNodeMap attributes = item.getAttributes();
+		String leveltext = attributes.getNamedItem(LEVEL).getTextContent();
+		if (leveltext != null) {
+			try {
+				level = Integer.parseInt(leveltext);
+			}
+			catch(NumberFormatException x) {
+				System.err.println(NFE);
+			}
+		}
+		String type = attributes.getNamedItem(KIND).getTextContent();
+		if (TEXT.equals(type)) {
 			slide.append(new TextItem(level, item.getTextContent()));
-		} else if (type.equals(IMAGE)) {
-			slide.append(new BitmapItem(level, item.getTextContent()));
-		} else {
-			System.err.println(UNKNOWNTYPE);
+		}
+		else {
+			if (IMAGE.equals(type)) {
+				slide.append(new BitmapItem(level, item.getTextContent()));
+			}
+			else {
+				System.err.println(UNKNOWNTYPE);
+			}
 		}
 	}
 
 	public void saveFile(Presentation presentation, String filename) throws IOException {
-		try (PrintWriter out = new PrintWriter(new FileWriter(filename))) {
-			out.println("<?xml version=\"1.0\"?>");
-			out.println("<!DOCTYPE presentation SYSTEM \"jabberpoint.dtd\">");
-			out.println("<presentation>");
-			out.print("<showtitle>");
-			out.print(presentation.getTitle());
-			out.println("</showtitle>");
-			for (int slideNumber = 0; slideNumber < presentation.getSize(); slideNumber++) {
-				Optional<Slide> optionalSlide = presentation.getSlide(slideNumber);
-				optionalSlide.ifPresent(slide -> {
-					out.println("<slide>");
-					out.println("<title>" + slide.getTitle() + "</title>");
-					List<SlideItem> slideItems = slide.getSlideItems();
-					for (SlideItem slideItem : slideItems) {
-						out.print("<item kind=\"" + (slideItem instanceof TextItem ? "text" : "image"));
-						out.print("\" level=\"" + slideItem.getLevel() + "\">");
-						out.print(slideItem instanceof TextItem ? ((TextItem) slideItem).getText() : ((BitmapItem) slideItem).getName());
-						out.println("</item>");
+		PrintWriter out = new PrintWriter(new FileWriter(filename));
+		out.println("<?xml version=\"1.0\"?>");
+		out.println("<!DOCTYPE presentation SYSTEM \"jabberpoint.dtd\">");
+		out.println("<presentation>");
+		out.print("<showtitle>");
+		out.print(presentation.getTitle());
+		out.println("</showtitle>");
+		for (int slideNumber=0; slideNumber<presentation.getSize(); slideNumber++) {
+			Slide slide = presentation.getSlide(slideNumber);
+			out.println("<slide>");
+			out.println("<title>" + slide.getTitle() + "</title>");
+			Vector<SlideItem> slideItems = slide.getSlideItems();
+			for (int itemNumber = 0; itemNumber<slideItems.size(); itemNumber++) {
+				SlideItem slideItem = (SlideItem) slideItems.elementAt(itemNumber);
+				out.print("<item kind="); 
+				if (slideItem instanceof TextItem) {
+					out.print("\"text\" level=\"" + slideItem.getLevel() + "\">");
+					out.print( ( (TextItem) slideItem).getText());
+				}
+				else {
+					if (slideItem instanceof BitmapItem) {
+						out.print("\"image\" level=\"" + slideItem.getLevel() + "\">");
+						out.print( ( (BitmapItem) slideItem).getName());
 					}
-					out.println("</slide>");
-				});
+					else {
+						System.out.println("Ignoring " + slideItem);
+					}
+				}
+				out.println("</item>");
 			}
-			out.println("</presentation>");
+			out.println("</slide>");
 		}
+		out.println("</presentation>");
+		out.close();
 	}
 }
