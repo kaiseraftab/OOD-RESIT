@@ -2,83 +2,76 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.image.ImageObserver;
 import java.io.IOException;
-import java.util.Vector;
-
-/** <p>A slide. This class has drawing functionality.</p>
- * @author Ian F. Darwin, ian@darwinsys.com, Gert Florijn, Sylvia Stuurman
- * @version 1.1 2002/12/17 Gert Florijn
- * @version 1.2 2003/11/19 Sylvia Stuurman
- * @version 1.3 2004/08/17 Sylvia Stuurman
- * @version 1.4 2007/07/16 Sylvia Stuurman
- * @version 1.5 2010/03/03 Sylvia Stuurman
- * @version 1.6 2014/05/16 Sylvia Stuurman
- */
+import java.util.ArrayList;
+import java.util.List;
 
 public class Slide {
-	public final static int WIDTH = 1200;
-	public final static int HEIGHT = 800;
-	protected String title; //The title is kept separately
-	protected Vector<SlideItem> items; //The SlideItems are kept in a vector
+	public static final int WIDTH = 1200;
+	public static final int HEIGHT = 800;
+	private String title; // The title of the slide
+	private List<SlideItem> items; // The SlideItems are kept in a list
 
 	public Slide() {
-		items = new Vector<SlideItem>();
+		items = new ArrayList<>();
 	}
 
-	//Add a SlideItem
+	// Adds a SlideItem
 	public void append(SlideItem anItem) {
-		items.addElement(anItem);
+		items.add(anItem);
 	}
 
-	//Return the title of a slide
+	// Returns the title of the slide
 	public String getTitle() {
 		return title;
 	}
 
-	//Change the title of a slide
+	// Changes the title of the slide
 	public void setTitle(String newTitle) {
 		title = newTitle;
 	}
 
-	//Create a TextItem out of a String and add the TextItem
+	// Creates a TextItem from a String and adds it
 	public void append(int level, String message) {
 		append(new TextItem(level, message));
 	}
 
-	//Returns the SlideItem
+	// Returns a specific SlideItem
 	public SlideItem getSlideItem(int number) {
-		return (SlideItem)items.elementAt(number);
+		if (number >= 0 && number < items.size()) {
+			return items.get(number);
+		}
+		return null;
 	}
 
-	//Return all the SlideItems in a vector
-	public Vector<SlideItem> getSlideItems() {
+	// Returns all SlideItems
+	public List<SlideItem> getSlideItems() {
 		return items;
 	}
 
-	//Returns the size of a slide
+	// Returns the number of SlideItems
 	public int getSize() {
 		return items.size();
 	}
 
-	//Draws the slide
+	// Draws the slide
 	public void draw(Graphics g, Rectangle area, ImageObserver view) throws IOException
-    {
+	{
 		float scale = getScale(area);
-	    int y = area.y;
-	//The title is treated separately
-	    SlideItem slideItem = new TextItem(0, getTitle());
-	    Style style = Style.getStyle(slideItem.getLevel());
-	    slideItem.draw(area.x, y, scale, g, style, view);
-	    y += slideItem.getBoundingBox(g, view, scale, style).height;
-	    for (int number=0; number<getSize(); number++) {
-	      slideItem = (SlideItem)getSlideItems().elementAt(number);
-	      style = Style.getStyle(slideItem.getLevel());
-	      slideItem.draw(area.x, y, scale, g, style, view);
-	      y += slideItem.getBoundingBox(g, view, scale, style).height;
-	    }
-	  }
+		int y = area.y;
+		SlideItem titleItem = new TextItem(0, getTitle());
+		Style titleStyle = Style.getStyle(titleItem.getLevel());
+		titleItem.draw(area.x, y, scale, g, titleStyle, view);
+		y += titleItem.getBoundingBox(g, view, scale, titleStyle).height;
 
-	//Returns the scale to draw a slide
+		for (SlideItem slideItem : items) {
+			Style style = Style.getStyle(slideItem.getLevel());
+			slideItem.draw(area.x, y, scale, g, style, view);
+			y += slideItem.getBoundingBox(g, view, scale, style).height;
+		}
+	}
+
+	// Calculates the scaling factor for the slide based on the area
 	private float getScale(Rectangle area) {
-		return Math.min(((float)area.width) / ((float)WIDTH), ((float)area.height) / ((float)HEIGHT));
+		return Math.min((float)area.width / WIDTH, (float)area.height / HEIGHT);
 	}
 }
