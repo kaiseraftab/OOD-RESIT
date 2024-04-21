@@ -28,7 +28,7 @@ public class MenuController extends MenuBar {
 		fileMenu.add(createMenuItem("New", e -> newPresentation()));
 		fileMenu.add(createMenuItem("Save", e -> savePresentation()));
 		fileMenu.addSeparator();
-		fileMenu.add(createMenuItem("Exit", e -> presentation.exit(0)));
+		fileMenu.add(createMenuItem("Exit", e -> exitApplication()));  // Handle exit through a method
 		return fileMenu;
 	}
 
@@ -43,7 +43,7 @@ public class MenuController extends MenuBar {
 	private Menu createHelpMenu() {
 		Menu helpMenu = new Menu("Help");
 		helpMenu.add(createMenuItem("About", e -> AboutBox.show(parent)));
-		setHelpMenu(helpMenu); // Needed for portability (Motif, etc.)
+		setHelpMenu(helpMenu);  // Needed for portability (Motif, etc.)
 		return helpMenu;
 	}
 
@@ -98,6 +98,15 @@ public class MenuController extends MenuBar {
 			presentation.setSlideNumber(pageNumber - 1);
 		} catch (NumberFormatException e) {
 			JOptionPane.showMessageDialog(parent, "Invalid number format", "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void exitApplication() {
+		int response = JOptionPane.showConfirmDialog(parent,
+				"Are you sure you want to exit?", "Confirm Exit",
+				JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+		if (response == JOptionPane.YES_OPTION) {
+			System.exit(0);
 		}
 	}
 }
