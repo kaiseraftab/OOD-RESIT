@@ -7,7 +7,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.ImageObserver;
 import java.text.AttributedString;
 import java.text.AttributedCharacterIterator;
-import java.awt.font.TextAttribute; // Ensure this import is correct
+import java.awt.font.TextAttribute;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +26,7 @@ public class TextItem extends SlideItem {
 
 	private AttributedString getAttributedString(Style style, float scale) {
 		AttributedString attributedString = new AttributedString(text);
-		// Using TextAttribute.FONT here
+		// Correctly using TextAttribute.FONT here
 		attributedString.addAttribute(TextAttribute.FONT, style.getFont(scale), 0, text.length());
 		return attributedString;
 	}
