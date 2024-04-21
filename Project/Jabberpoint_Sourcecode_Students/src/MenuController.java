@@ -70,7 +70,7 @@ public class MenuController extends MenuBar {
 		presentation.clear();
 		XMLAccessor xmlAccessor = new XMLAccessor();
 		try {
-			String newFileName = xmlAccessor.LoadNewFile();
+			String newFileName = xmlAccessor.loadNewFile();
 			if (newFileName != null) {
 				xmlAccessor.loadFile(presentation, newFileName);
 				presentation.setSlideNumber(0);

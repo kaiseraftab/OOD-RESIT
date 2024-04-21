@@ -1,7 +1,9 @@
 import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class XMLFIleSelector extends JFrame {
 
@@ -10,62 +12,39 @@ public class XMLFIleSelector extends JFrame {
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
-            String filePath = selectedFile.getAbsolutePath();
-            if(! checkIfPresent(selectedFile.getName())){
-                CopyInCurrentDirectory(filePath,selectedFile.getName());
+            if (!checkIfPresent(selectedFile.getName())) {
+                copyInCurrentDirectory(selectedFile.getAbsolutePath(), selectedFile.getName());
             }
-            return selectedFile.getName();
-        } else {
-            return null; // user cancelled the file chooser dialog
+            return selectedFile.getAbsolutePath();  // It might be more useful to return the full path
         }
+        return null; // User cancelled the file chooser dialog
     }
-    public boolean checkIfPresent(String filename){
-        // Get the current working directory
-        String cwd = System.getProperty("user.dir");
 
-        // Create the file path by joining the file name to the current working directory
-        String filePath = cwd + File.separator + filename;
-
-        // Check if the file exists
-        File file = new File(filePath);
+    public boolean checkIfPresent(String filename) {
+        File file = new File(filename);
         if (file.exists()) {
-            JOptionPane.showMessageDialog(null, "The file exists in the directory.");
+            JOptionPane.showMessageDialog(this, "The file exists in the directory.");
             return true;
         } else {
             return false;
         }
     }
-        public boolean CopyInCurrentDirectory(String sourceFilePath,String fileName)
-    {
-        // Source file location
-        File sourceFile = new File(sourceFilePath   );
 
-        // Destination file location (relative to Java main file)
-        File destinationFile = new File(fileName);
-        try{
-            // Create input and output streams
-            FileInputStream inputStream = new FileInputStream(sourceFile);
-            FileOutputStream outputStream = new FileOutputStream(destinationFile);
-
-            // Copy file contents from input stream to output stream
+    public boolean copyInCurrentDirectory(String sourceFilePath, String fileName) {
+        File sourceFile = new File(sourceFilePath);
+        File destinationFile = new File(System.getProperty("user.dir"), fileName);
+        try (FileInputStream inputStream = new FileInputStream(sourceFile);
+             FileOutputStream outputStream = new FileOutputStream(destinationFile)) {
             byte[] buffer = new byte[1024];
             int bytesRead;
             while ((bytesRead = inputStream.read(buffer)) > 0) {
                 outputStream.write(buffer, 0, bytesRead);
             }
-
-            // Close input and output streams
-            inputStream.close();
-            outputStream.close();
-
             System.out.println("File copied successfully.");
             return true;
-        }
-        catch (Exception e){
-            System.out.println("Try Again");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Failed to copy the file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
     }
-
-
 }
