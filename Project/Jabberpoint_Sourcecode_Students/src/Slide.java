@@ -1,6 +1,7 @@
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.image.ImageObserver;
+import java.io.IOException;
 import java.util.Vector;
 
 /** <p>A slide. This class has drawing functionality.</p>
@@ -59,7 +60,8 @@ public class Slide {
 	}
 
 	//Draws the slide
-	public void draw(Graphics g, Rectangle area, ImageObserver view) {
+	public void draw(Graphics g, Rectangle area, ImageObserver view) throws IOException
+    {
 		float scale = getScale(area);
 	    int y = area.y;
 	//The title is treated separately

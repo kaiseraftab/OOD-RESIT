@@ -3,6 +3,7 @@ import java.awt.Font;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.io.IOException;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
@@ -68,6 +69,12 @@ public class SlideViewerComponent extends JComponent {
 		g.drawString("Slide " + (1 + presentation.getSlideNumber()) + " of " +
                  presentation.getSize(), XPOS, YPOS);
 		Rectangle area = new Rectangle(0, YPOS, getWidth(), (getHeight() - YPOS));
-		slide.draw(g, area, this);
-	}
+        try
+        {
+            slide.draw(g, area, this);
+        } catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
 }
