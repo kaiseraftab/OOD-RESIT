@@ -4,7 +4,7 @@ public class Presentation {
 	private String showTitle;
 	private ArrayList<Slide> showList = null;
 	private int currentSlideNumber = 0;
-	private SlideViewerComponent slideViewComponent = null; 
+	private SlideViewerComponent slideViewComponent = null;
 
 	public Presentation() {
 		slideViewComponent = null;
