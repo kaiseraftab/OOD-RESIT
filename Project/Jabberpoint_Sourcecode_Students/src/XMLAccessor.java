@@ -181,7 +181,7 @@ public class XMLAccessor implements Accessor
 			{
 				out.println("<slide>");
 				out.println("<title>" + slide.getTitle() + "</title>");
-				Vector<SlideItem> slideItems = slide.getSlideItems();
+				Vector<SlideItem> slideItems = (Vector<SlideItem>) slide.getSlideItems();
 				for (SlideItem slideItem : slideItems)
 				{
 					out.print("<item kind=");
